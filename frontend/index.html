@@ -3,46 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UTcoins - Iniciar Sesión</title>
+    <title>UTcoins - Bienvenidos</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-    <header class="top-banner">
-        <div class="banner-logo">
-            <img src="/frontend/images/logo coin.png" alt="Logo UTcoins" class="logo-img">
-        </div>
-    </header>
-
-    <main class="container">
-        <div class="login-card">
-            <h1>Iniciar Sesión</h1>
-            <p class="subtitle">Ingresa tus datos para acceder</p>
-            
-            <form id="login-form" onsubmit="event.preventDefault();">
-                <div class="form-group">
-                    <label for="email">Correo Electrónico</label>
-                    <input type="email" id="email" placeholder="ejemplo@universidad.edu" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="matricula">Matricula</label>
-                    <input type="matricula" id="matricula" placeholder="" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="password">Contraseña</label>
-                    <input type="password" id="password" placeholder="••••••••" required>
-                </div>
-
-                <button type="submit" class="btn-submit">Ingresar</button>
-            </form>
-
-            <div class="form-footer">
-                <p>¿No tienes una cuenta? <a href="registrarse.html">Regístrate aquí</a></p>
+    <div class="landing-wrapper">
+        
+        <main class="hero-left">
+            <div class="hero-image-container">
+                <img src="/frontend/images/logo eslogan_f.png" alt="UTcoins Ilustración" class="hero-img-main">
             </div>
-        </div>
-    </main>
+            <div class="slogan-container">
+                <h1 class="slogan-title">Cada logro académico <br>tiene su recompensa.</h1>
+                <p class="slogan-text">Suma UTcoins participando en tu campus, escala en la tabla de posiciones y canjea increíbles premios.</p>
+                <a href="inicio_sesion.html" class="btn-landing-start">Comenzar ahora</a>
+            </div>
+        </main>
+
+        <aside class="banner-right">
+            <nav class="nav-menu-landing">
+                <a href="index.html" class="nav-item active">Inicio</a>
+                <a href="#" class="nav-item">Actividades</a>
+                <a href="#" class="nav-item">Tabla Posiciones</a>
+                <a href="inicio_sesion.html" class="nav-item btn-cuenta">Cuenta</a>
+                <br><br><br>
+            </nav>
+            
+            <div class="banner-footer">
+                <a href="acecrca_de.html" class="nav-item">Acerca de</a>
+            </div>
+
+        </aside>
+
+    </div>
 
 </body>
 </html>

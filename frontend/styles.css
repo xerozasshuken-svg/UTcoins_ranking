@@ -44,11 +44,11 @@ body {
 /* CUADRO REDONDEADO DE LOGIN */
 .login-card {
     background-color: #ffffff;
-    padding: 60px;
+    padding: 40px;
     border-radius: 16px; /* Bordes redondeados elegantes */
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); /* Sombra suave */
     width: 100%;
-    max-width: 400px;
+    max-width: 460px;
     text-align: center;
 }
 
@@ -78,7 +78,8 @@ body {
     font-weight: 500;
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
     width: 100%;
     padding: 12px 16px;
     border: 1px solid #dddddd;
@@ -89,7 +90,8 @@ body {
 }
 
 /* Efecto verde al hacer clic en las entradas */
-.form-group input:focus {
+.form-group input:focus,
+.form-group select:focus {
     border-color: #39B860;
 }
 
@@ -131,13 +133,136 @@ body {
 
 .register-card{
     background-color: #ffffff;
-    padding: 60px;
+    padding: 40px;
     border-radius: 16px; /* Bordes redondeados elegantes */
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); /* Sombra suave */
     width: 100%;
-    max-width: 400px;
+    max-width: 470px;
     text-align: center;
 }
+
+/*PAGINA DE INICIO PRINCIPAL*/
+/* Contenedor que divide la pantalla en dos: Izquierda y Derecha */
+.landing-wrapper {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+    background-color: #f4f7f6;
+    overflow-x: hidden;
+}
+
+/* LADO IZQUIERDO */
+.hero-left {
+    flex: 1; /* Toma la mayor parte del espacio disponible */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px;
+    background-color: #ffffff;
+}
+
+.hero-image-container {
+    width: 100%;
+    max-width: 500px; /* Controla qué tan grande se verá la imagen */
+    margin-bottom: 30px;
+}
+
+.hero-img-main {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    display: block;
+}
+
+/* Estilos del Eslogan */
+.slogan-container {
+    max-width: 600px;
+}
+
+.slogan-title {
+    font-size: 38px;
+    color: #333333;
+    line-height: 1.2;
+    margin-bottom: 15px;
+    font-weight: 800;
+}
+
+.slogan-text {
+    font-size: 16px;
+    color: #666666;
+    line-height: 1.6;
+    margin-bottom: 25px;
+}
+
+.btn-landing-start {
+    display: inline-block;
+    padding: 12px 24px;
+    background-color: #3EC768;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 18px;
+    transition: background-color 0.2s;
+}
+
+.btn-landing-start:hover {
+    background-color: #39B860;
+}
+
+/* LADO DERECHO: BANNER LATERAL */
+.banner-right {
+    width: 200px; /* Ancho fijo para el banner lateral */
+    background-color: #39B860; /* ⚠️ Color verde base, puedes cambiarlo si gustas */
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    padding: 30px;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.05);
+}
+
+/* Menú en la esquina superior derecha del banner */
+.nav-menu-landing {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* Alinea los textos a la derecha */
+    gap: 18px;
+    width: 100%;
+}
+
+.nav-item {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.nav-item:hover, .nav-item.active {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+/* Botón llamativo para 'Cuenta' */
+.btn-cuenta {
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 6px 16px;
+    border-radius: 20px;
+    transition: background-color 0.2s;
+}
+
+.btn-cuenta:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.banner-footer{
+    margin-top: auto;
+    width: 100%;
+    text-align: right;
+    padding-top: 200px;
+}
+/* Contenido del centro del banner */
+
 
 
 /*ADAPTACIÓN PARA DISPOSITIVOS MÓVILES (CELULARES) */
@@ -173,5 +298,24 @@ body {
         width: 80%;         
         padding: 12px;
         font-size: 13px;
+    }
+
+    .landing-wrapper {
+        flex-direction: column-reverse; /* El banner se va arriba en celulares */
+    }
+    .banner-right {
+        width: 100%;
+        height: auto;
+        padding: 20px;
+    }
+    .nav-menu-landing {
+        flex-direction: row;
+        justify-content: space-around;
+    }
+    .hero-left {
+        padding: 30px 20px;
+    }
+    .slogan-title {
+        font-size: 28px;
     }
 }
