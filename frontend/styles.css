@@ -194,7 +194,7 @@ body {
     margin-bottom: 25px;
 }
 
-.btn-landing-start {
+.btn-start {
     display: inline-block;
     padding: 12px 24px;
     background-color: #3EC768;
@@ -206,7 +206,7 @@ body {
     transition: background-color 0.2s;
 }
 
-.btn-landing-start:hover {
+.btn-start:hover {
     background-color: #39B860;
 }
 
@@ -246,6 +246,7 @@ body {
 /* Botón llamativo para 'Cuenta' */
 .btn-cuenta {
     background-color: rgba(255, 255, 255, 0.2);
+    text-align: center;
     padding: 6px 16px;
     border-radius: 20px;
     transition: background-color 0.2s;
@@ -263,7 +264,67 @@ body {
 }
 /* Contenido del centro del banner */
 
+/*INFORMACION DE CUENTA*/
 
+/* La etiqueta pequeña que va arriba de cada caja */
+.info-label {
+    font-size: 12px;
+    color: #666666;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 6px;
+    text-align: left; 
+}
+
+/* La caja que muestra el texto de la BD */
+.info-box {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #dddddd;
+    border-radius: 8px; /* Mismo redondeado que usas en tus inputs */
+    font-size: 13px;
+    background-color: #f9f9f9;
+    color: #333333;
+    text-align: left;
+    font-weight: 500;
+    box-sizing: border-box; 
+    margin-bottom: 15px;
+}
+
+/* Estilo para el botón secundario "Volver al Inicio" */
+.btn-secondary {
+    display: inline-block;
+    padding: 12px;
+    background-color: #e2e8f0;
+    color: #4a5568;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: bold;
+    text-align: center;
+    transition: background-color 0.2s;
+}
+
+.btn-secondary:hover {
+    background-color: #cbd5e1;
+}
+
+/* Estilo para el botón "Cerrar Sesión" */
+.btn-danger {
+    padding: 12px;
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-danger:hover {
+    background-color: #dc2626;
+}
 
 /*ADAPTACIÓN PARA DISPOSITIVOS MÓVILES (CELULARES) */
 
