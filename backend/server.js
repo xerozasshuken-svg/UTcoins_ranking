@@ -4,6 +4,7 @@ require('dotenv').config();
 const pool = require('./db');
 
 const authRoutes = require('./routes/authRoutes');
+const rankingRoutes = require('./routes/rankingRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,6 +12,7 @@ const PORT = process.env.PORT || 3000;
 //Middleware globales
 app.use(cors()); 
 app.use(express.json());
+app.use('/api/ranking', rankingRoutes);
 
 //Vincular rutas
 app.use('/api/auth', authRoutes);
