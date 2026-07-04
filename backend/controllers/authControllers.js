@@ -67,7 +67,7 @@ const loginEstudiante = async (req, res) =>{
 
         //Generar token JWT
         const token = jwt.sign(
-            { id: estudiante.id, nombre: estudiante.nombre},
+            { id: estudiante.id, nombre: estudiante.nombre, rol: estudiante.rol},
             process.env.JWT_SECRET,
             {expiresIn: '8h'}
         );
@@ -81,7 +81,8 @@ const loginEstudiante = async (req, res) =>{
                 email: estudiante.email,
                 carrera: estudiante.carrera,
                 puntuacion: estudiante.puntuacion,
-                matricula: estudiante.matricula                
+                matricula: estudiante.matricula,
+                rol: estudiante.rol               
             }
         });
     }

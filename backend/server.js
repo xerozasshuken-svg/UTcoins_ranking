@@ -5,6 +5,7 @@ const pool = require('./db');
 
 const authRoutes = require('./routes/authRoutes');
 const rankingRoutes = require('./routes/rankingRoutes');
+const actividadRoutes = require('./routes/actividadRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,11 +13,12 @@ const PORT = process.env.PORT || 3000;
 //Middleware globales
 app.use(cors()); 
 app.use(express.json());
-app.use('/api/ranking', rankingRoutes);
+
 
 //Vincular rutas
 app.use('/api/auth', authRoutes);
-
+app.use('/api/ranking', rankingRoutes);
+app.use('/api/actividades', actividadRoutes);
 
 //ruta de prueba para verificar
 app.get('/api/prueba', (req, res) =>{
@@ -34,4 +36,3 @@ app.listen(PORT, async () => {
         console.error('Error al conectar con la base de datos: ', errs.message);
     }
 });
-
