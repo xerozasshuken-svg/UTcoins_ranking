@@ -16,7 +16,7 @@ const obtenerActividades =  async(req,res) =>{
 
 //REGISTRO DE ACTIVIDAD Y SUMAR PUNTOS
 const completarActividad = async (req, res)=>{
-    const{ actividadId } = req.body;
+    const{ actividadId, qrEscaneado } = req.body;
     const estudianteId = req.usuario.id;
 
     try{
@@ -26,8 +26,15 @@ const completarActividad = async (req, res)=>{
             return res.status(404).json({mensaje: 'La actividad no existe'});
         }
 
-        const recompensa = actividadCheck.rows[0].utcoins_recompensa;
+        const actividad = actividadCheck.rows[0];
 
+        if (actividad.codigo_qr !== qrEscaneado) {
+            return res.status(400).json({mensaje: 'El codigo QR escaneado no es valido'});
+        }
+
+        if (actividad.fecha_expiracion && new Date() > new Date(actividad.fecha_expiracion)) {
+            return res.status(400).json({mensaje: 'Esta actividad ya expiro'});
+        }
         //Verificar si el estudiante ya la habia complentado
         const registroChek = await pool.query(
             'SELECT * FROM estudiantes_actividades WHERE estudiante_id = $1 AND actividad_id = $2',
@@ -49,16 +56,17 @@ const completarActividad = async (req, res)=>{
         //SUMAR UTcoins al estudiante
         await pool.query(
             'UPDATE estudiante SET puntuacion = puntuacion + $1 WHERE id = $2',
-            [recompensa, estudianteId]
+            [actividad.utcoins_recompensa, estudianteId]
         );
 
         //Confirmar los cambios
         await pool.query('COMMIT');
 
         res.status(200).json({
-            mensaje: `Actividad completada. Ganaste ${recompensa} UTcoins`,
-            puntosGanados: recompensa
+            mensaje: `Codigo verificado. Ganaste ${actividad.utcoins_recompensa} UTcoins`,
+            puntosGanados: actividad.utcoins_recompensa
         });
+        
     }
     catch(error){
         await pool.query('ROLLBACK');
@@ -103,8 +111,42 @@ const crearActividad = async (req, res) =>{
     }
 };
 
+const eliminarActividad = async (req, res) =>{
+
+    const{id} = req.params;
+
+    try{
+        //Verificar si la actividad existe
+        const chek = await pool.query('SELECT * FROM actividades WHERE id = $1', [id]);
+        if (chek.rows.length === 0) {
+            return res.status(404).json({mensaje: 'La actividad que intentas eliminar no existe'});
+        }
+
+        //Eliminar actividad
+        await pool.query('DELETE FROM actividades WHERE id = $1', [id]);
+
+        res.status(200).json({mensaje: 'Actividad eliminada correctamente'});
+
+    }
+    catch (error)
+    {
+        console.error('Error en eliminarActividad: ', error.mensaje);
+
+        //PostgreSQL bloqueara si ya fgue completada por llave foranea
+        if (error.code === '23503') {
+            return res.status(400).json({
+                mensaje: 'No se puede elminar la actividad'
+            });
+        }
+
+        res.status(500).json({mensaje: 'Error interno al intentar eliminar la actividad'});
+    }
+};
+
+
 module.exports = {
     obtenerActividades,
     completarActividad,
-    crearActividad
+    crearActividad,
+    eliminarActividad
 };

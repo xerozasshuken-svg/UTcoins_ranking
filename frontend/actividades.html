@@ -3,9 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Actividades</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+
+    <header class="top-banner"></header>
     
+    <main class="contenedor-principal">
+
+        <h1 class="titulo-seccion">Actividades</h1>
+
+        <section class="folder-contenedor">
+
+            <div class="folder-pestanas">
+                <button class="btn-categoria activo" data-categoria="academicas">Academicas</button>
+                <button class="btn-categoria" data-categoria="conferencias">Conferencias</button>
+                <button class="btn-categoria" data-categoria="competencias">Competencias</button>
+                <button class="btn-categoria" data-categoria="deportes">Deportes</button>
+                <button class="btn-categoria" data-categoria="cultura">Cultura</button>
+                <button class="btn-categoria" data-categoria="arte">Arte</button>
+                <button class="btn-categoria" data-categoria="idiomas">Idiomas</button>
+            </div>
+            
+            <div id="folder-cuerpo" class="folder-cuerpo">
+
+                <div class="tarjeta-actividad">
+                    <div class="actividad-info">
+                        <h3>Conferencia de Ciberguridad</h3>
+                        <p>aaaa</p>
+                        <span class="recompensa"> x UTCOINS</span>
+                    </div>
+                    <button class="btn-qr">Escanear QR</button>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <script src="actividades.js"></script>
 </body>
 </html>
