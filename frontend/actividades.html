@@ -11,9 +11,17 @@
     <header class="top-banner"></header>
     
     <main class="contenedor-principal">
+        <div class="titulo-admin-flex">
+            <h1 class="titulo-seccion">Actividades</h1>
 
-        <h1 class="titulo-seccion">Actividades</h1>
+            <button id="btn-abrir-modal-actividad" 
+                    class="btn-crear-actividad-admin" 
+                    style="display: none;">
 
+                    + Crear Actividad
+            </button>
+        </div>
+        
         <section class="folder-contenedor">
 
             <div class="folder-pestanas">
@@ -29,17 +37,65 @@
             <div id="folder-cuerpo" class="folder-cuerpo">
 
                 <div class="tarjeta-actividad">
+
                     <div class="actividad-info">
                         <h3>Conferencia de Ciberguridad</h3>
                         <p>aaaa</p>
                         <span class="recompensa"> x UTCOINS</span>
                     </div>
-                    <button class="btn-qr">Escanear QR</button>
+
+                    <div class="actividad-acciones">
+                            <button class="btn-qr">Escanear QR</button>
+                    </div>
                 </div>
 
             </div>
         </section>
     </main>
+
+    <div id="modal-actividad" class="modal-overlay">
+        
+        <div class="modal-content">
+
+            <h3>Crear Nueva Actividad</h3>
+            <form id="form-crear-actividad">
+
+                <div class="form-group">
+                    <label for="act-titulo">Titulo:</label>
+                    <input type="text" id="act-titulo" required placeholder="EJ: Torneo de ajedrez">
+                </div>
+
+                <div class="form-group">
+                    <label for="act-descripcion">Descripcion:</label>
+                    <textarea id="act-descripcion" required placeholder="Detalles de la actividad..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="act-puntos">Puntaje (UTcoins):</label>
+                    <input type="number" id="act-puntos" min="1" required placeholder="Ej: 50">
+                </div>
+
+                <div class="form-group">
+                    <label for="act-categoria">Categoria del Folder:</label>
+                    <select id="act-categoria" required>
+                        <option value="academicas">Academicas</option>
+                        <option value="conferencias">Conferencias</option>
+                        <option value="competencias">Competencias</option>
+                        <option value="deportes">Deportes</option>
+                        <option value="culturas">Culturas</option>
+                        <option value="arte">Arte</option>
+                        <option value="idiomas"> Idiomas</option>
+                    </select>
+                </div>
+
+                <div class="modal-botones">
+                    <button type="button" id="btn-cerrar-modal" class="btn-cancelar">Cancelar</button>
+                    <button type="submit" class="btn-guardar">Guardar Activiadad</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
 
     <script src="actividades.js"></script>
 </body>

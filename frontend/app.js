@@ -95,14 +95,23 @@ const navLinks = document.querySelectorAll('.nav-item');
 const btnCuenta = document.querySelector('.btn-cuenta');
 const btnComenzar = document.querySelector('.btn-start');
 
+const avisoAdmin = document.getElementById('aviso-admin-contenedor');
+
 if(navLinks.length >0){
     //CONFIGURACION SI EL USUARIO YA ESTA LOGUEADO
     if (token && usuarioData) {
         const usuario = JSON.parse(usuarioData);
 
+        //Si es admin se activa el aviso
+        if (usuario.rol === 'Admin' && avisoAdmin) {
+            avisoAdmin.className = 'aviso-admin-visible';
+        }
+
         //Cambio del texto en el boton "cuenta"
         if (btnCuenta) {
-            btnCuenta.textContent = `Cuenta; ${usuario.nombre.split(' ')[0]}`;
+            //Si es admin se cambia la palabra "estudiante" a "admin" en el boton
+            const prefijo = usuario.rol === 'admin' ? 'Admin' : 'Cuenta';
+            btnCuenta.textContent = `${prefijo}: ${usuario.nombre.split(' ')[0]}`;
             btnCuenta.href = 'info_cuenta.html';
         }
         if (btnComenzar) {
@@ -141,7 +150,9 @@ if(infoCarrera){
 
         const subTitulo = document.querySelector('.subtitle');
         if (subTitulo) {
-            subTitulo.textContent = `Estudiante: ${usuario.nombre}`;
+            //Ajsutar el subtitulo segun el ron
+            const rolTexto = usuario.rol === 'admin' ? 'Administrador' : 'Estudiante';
+            subTitulo.textContent = `${rolTexto}: ${usuario.nombre}`;
         }
 
         // Inyectamos los datos asegurando minúsculas en las propiedades del objeto

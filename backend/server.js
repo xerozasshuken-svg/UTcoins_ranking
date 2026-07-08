@@ -6,6 +6,7 @@ const pool = require('./db');
 const authRoutes = require('./routes/authRoutes');
 const rankingRoutes = require('./routes/rankingRoutes');
 const actividadRoutes = require('./routes/actividadRoutes');
+const verificarOCrearAdmin = require('./setupAdmin');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -31,6 +32,8 @@ app.listen(PORT, async () => {
     try{
         const res = await pool.query('SELECT NOW()');
         console.log('Conexion verificada con la BD a las: ', res.rows[0].now);
+
+        await verificarOCrearAdmin();
     }
     catch (errs){
         console.error('Error al conectar con la base de datos: ', errs.message);
