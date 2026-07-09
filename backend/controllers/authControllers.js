@@ -27,7 +27,7 @@ const registrarEstudiante = async (req, res) => {
 
         const nuevoEstudiante = await pool.query(
             `INSERT INTO estudiantes (nombre, email, password, carrera, matricula) 
-            VALUES ($1, $2, $3, $4, $5) RETURNING id, nombre, email, carrera, matricula`,
+            VALUES ($1, $2, $3, $4, $5) RETURNING id, nombre, email, carrera, matricula, rol`,
             [nombre, email, passwordHash, carrera, matricula]
         );
 
@@ -50,7 +50,7 @@ const loginEstudiante = async (req, res) =>{
 
     try{
         //Buscar estudiante por email
-        const resultado = await pool.query('SELECT id, nombre, email, password, carrera, matricula FROM estudiantes WHERE email = $1', [email]);
+        const resultado = await pool.query('SELECT id, nombre, email, password, carrera, matricula, rol FROM estudiantes WHERE email = $1', [email]);
         
         if (resultado.rows.length === 0) {
             return res.status(400).json({ mensaje: 'Credenciuales incorrectos (Email no encontrado).'});

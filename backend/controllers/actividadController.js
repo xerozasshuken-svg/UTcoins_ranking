@@ -1,16 +1,28 @@
 const pool = require('../db');
 
 const obtenerActividades =  async(req,res) =>{
+    const { categoria } = req.query; //Captura lo que viene en categoria
+
+    if (!categoria) {
+        return res.status(400).json({mensaje: 'La categoria es requerida'});
+    }
+
     try{
-        const resultado = await pool.query('SELECT * FROM actividades ORDER BY id ASC');
-        res.status(200).json({
-            mensaje: 'Actividades obtenidas con exito',
-            actividades: resultado.rows
-        });
+        //Filtrar por categoria y comprobar que no haya expirado
+        const resultado = await pool.query(
+            `SELECT id, titulo, descripcion, utcoins_recompensa AS puntos, categoria, fecha_expiracion
+            FROM actividades
+            WHERE categoria = $1
+            AND (fecha_expiracion IS NULL OR fecha_expiracion > NOW())
+            ORDER BY id DESC`,
+            [categoria]
+        );
+
+        res.json(resultado.rows);
     }
     catch (error){
-        console.error('Error en obtener actividades:', error.message);
-        res.status(500).json({mensaje: 'Error al cargar las actividades'});
+        console.error('Error en obtenerActividades:', error.message);
+        res.status(500).json({mensaje: 'Error al obtener las actividades'});
     }
 };
 
@@ -77,16 +89,9 @@ const completarActividad = async (req, res)=>{
 
 const crearActividad = async (req, res) =>{
 
-    const {titulo, descripcion, utcoins_recompensa, categoria, minutos_validez} = Request.body;
+    const {titulo, descripcion, puntos, categoria, fecha_expiracion} = req.body;
 
     try{
-        //Calcular la fecha de expiracion sumando los minutos a la hora actual
-        let fecha_expiracion = null;
-
-        if (minutos_validez && minutos_validez > 0) {
-            fecha_expiracion = new Date();
-            fecha_expiracion.setMinutes(fecha_expiracion.getMinutes() + parseInt(minutos_validez));
-        }
         
         //Codigo aleatorio para QR
         const codigo_qr = `RETO-${Math.floor(100000 + Math.random() * 900000)}`;
@@ -97,7 +102,7 @@ const crearActividad = async (req, res) =>{
             VALUES ($1, $2, $3, $4, $5, $6)
             RETURNING *`;
 
-        const valores = [titulo, descripcion, utcoins_recompensa, categoria, codigo_qr, fecha_expiracion];
+        const valores = [titulo, descripcion, puntos, categoria, codigo_qr, fecha_expiracion];
         const resultado = await pool.query(quertText, valores);
 
         res.status(201).json({
@@ -108,6 +113,32 @@ const crearActividad = async (req, res) =>{
     catch (error){
         console.error('Error al crearActividad', error.message);
         res.status(500).json({mensaje: 'Error interno al crear la actividad'});
+    }
+};
+
+const obtenerActividadesPorCategoria = async (req, res) =>{
+    const { categoria } = req.query;
+
+    if (!categoria) {
+        return res.status(400).json({mensaje: 'La categoria es requerida'});
+    }
+
+    try{
+        //Trae las actividades donde la categoria coincida
+        const resultado = await pool.query(
+            `SELECT id, titulo, descripcion, puntos, categoria, fecha_expiracion
+            FROM actividades
+            WHERE categoria = $1
+            AND (fecha_expiracion IS NULL OR fecha_expiracion > NOW())
+            ORDER BY id DESC`,
+            [categoria]
+        );
+
+        res.json(resultado.rows);
+    }   
+    catch (error){
+        console.error('Error en obtenerActividadesPorCategoria: ', error.message);
+        res.status(500).json({mensaje: 'Error interno del servidor al obtener las '});
     }
 };
 
@@ -148,5 +179,6 @@ module.exports = {
     obtenerActividades,
     completarActividad,
     crearActividad,
+    obtenerActividadesPorCategoria,
     eliminarActividad
 };

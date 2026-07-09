@@ -414,7 +414,7 @@ body {
     z-index: 2000;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 10s ease-in-out;
+    transition: opacity 0.2s ease-in-out;
 }
 .modal-overlay.mostrar{
     opacity: 1;
