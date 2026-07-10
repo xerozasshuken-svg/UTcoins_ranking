@@ -26,6 +26,179 @@ const obtenerActividades =  async(req,res) =>{
     }
 };
 
+const inscribirActividad = async (req,res) =>{
+    const { actividadId } = req.body;
+    const estudianteId = req.usuario.id;
+
+    try{
+        //Verificar si la actividad existe y no ha expirado
+        const actividad = await pool.query(
+          'SELECT * FROM actividades WHERE id = $1 AND (fecha_expiracion IS NULL OR fecha_expiracion > NOW())',
+          [actividadId]
+        );
+        if (actividad.rows.length === 0) {
+            return res.status(404).json({ mensaje: 'La actividad no existe o ya ha expirado'});
+        }
+
+        //Registrar la inscripcion
+        await pool.query(
+            `INSERT INTO estudiantes_actividades (estudiante_id, actividad_id)
+            VALUES ($1, $2)
+            ON CONFLICT (estudiante_id, actividad_id) DO NOTHING`,
+            [estudianteId, actividadId]
+        );
+
+        res.status(201).json({mensaje: 'Te has registrado en la actividad con exito.'});
+    }
+    catch (error){
+        console.error('Error en inscribirActividad: ', error.message);
+        res.status(500).json({mensaje: 'Error interno al registrarse en la actividad'});
+    }
+};
+
+const darDeBajaActividad = async (req, res) =>{
+    const { id } = req.params; //Id de la actividad
+    const estudianteId = req.usuario.id;
+
+    try{
+        //Verificar si ya esta competo 8no se puede dar de baja una vez completo)
+        const verificacion = await pool.query(
+            'SELECT completado FROM estudiantes_actividades WHERE estudiante_id = $1 AND actividad_id = $2',
+            [estudianteId, id]
+        );
+
+        if (verificacion.rows.length > 0 && verificacion.rows[0].completado) {
+            return res.status(400).json({mensaje: 'No puedes dar de baja una actividad que ya has completado'});
+        }
+
+        await pool.query(
+            'DELETE FROM estudiantes_actividades WHERE estudiante_id = $1 AND actividades_id = $2',
+            [estudianteId, id]
+        );
+
+        res.json({mensaje: 'Te has dado de baja de la actividad correctamente'});
+    }
+    catch (error){
+        console.error(500).json({mensaje: 'Eror interno al dar de baja la actividad'});
+    }
+};
+
+const obtenerMisActividades = async (req,res) =>{
+    const estudianteId = req.usuario.id;
+
+    try{
+        //Unimos estudiantes_actividades con actividades
+        const resultado = await pool.query(
+            `SELECT a.id, a.titulo, a.descripcion, a.utcoins_recompensa AS puntos, a.categoria, ea.completado
+            FROM estudiantes_actividades ea
+            JOIN actividades a ON ea.actividad_id = a.id
+            WHERE ea.estudiante_id = $1
+            ORDER BY ea.id DESC`,
+            [estudianteId]
+        );
+
+        res.json(resultado.rows);
+    }
+    catch (error){  
+        console.error('Error en obtenerMisActividades: ',error.message);
+        res.status(500).json({mensaje: 'Error interno al obtener tus actividades'});
+    }
+};
+
+const verificarCodigoTexto = async (req,res) =>{
+    const { actividadId, codigoTexto } = req.body;
+    const estudianteId = req.usuario.id;
+
+    try{
+        //Verificar inscripcion
+        const inscripcion = await Pool.query(
+            'SELECT codigo_verificado, qr_escaneado FROM estudiantes_actividades WHERE estudiante_id = $1 AND actividade_id = $2',
+            [estudianteId, actividadId]
+        );
+        
+        if (inscripcion.rows.length === 0) {
+            return res.status(400).json({mensaje: 'Ya has verificado el codigo de texto para esta actividad '});
+        }
+
+        //Validar contra el codigo Qr culto de la tabla de actividades
+        const actividad = await pool.query('SELECT codigo_qr FROM actividades WHERE id = $1', [actividadId]);
+
+        if (actividad.rows[0].codigo_qr.toUpperCase() !== codigoTexto.toUpperCase()) {
+            return res.status(400).json({mensaje: 'El codigo de validacion de texto es incorrecto'});
+        }
+
+        //Marcar primer paso como completado
+        await pool.query(
+            `UPDATE estudiantes_actividades
+            SET codigo_verificado = TRUE
+            WHERE estudiante_id = $1 AND actividad_id = $2`,
+            [estudianteId, actividadId]
+        );
+
+        res.status(200).json({mensaje: 'Codigo verificado con exito. Escanea el QR para recibir los puntos'});
+    }
+    catch(error){
+        console.error('Error en verificarCodigoTexto: ', error.message);
+        res.status(500).json({mensaje: 'Error interno del servidor'});
+    }
+};
+
+const escanearQrFisico = async (req,res) =>{
+    const {actividadId, contenidoQr } = req.body;
+    const estudianteId = req.usuario.id;
+
+    try{
+        //Verifica que haya hecho el paso previo (codigo de texto)
+        const inscripcion = await pool.query(
+            'SELECT codigo_verificado, qr_escaneado FROM estudiantes_actividades WHERE estudiante_id = $1 AND actividad_id = $2',
+            [estudianteId, actividadId]
+        );
+
+        if (inscripcion.rows.length === 0 || !inscripcion.rows[0].codigo_verificado) {
+            return res.status(400).json({mensaje: 'Primero debess verificar el codigo de texto de la actividad antes de escanear el QR'});
+        }
+
+        if (inscripcion.rows[0].qr_escaneado) {
+            return res.status(400).json({mensaje: 'Ya has reclamado los puntos de esta actividad'});
+        }
+
+        //Verificar que el QR escaneado sea el correcto
+        const actividad = await pool-query('SELECT utcoins_recompensa, codigo_qr FROM actividades WHERE id = $1', {actividadId});
+        
+        if (actividad.rows[0].codigo_qr.toUpperCase() !== contenidoQr.toUpperCase()) {
+            return res.status(400).json({mensaje: 'El codigo QR escaneado no pertenece a esta actividad'});
+        }
+
+        const puntos = actividad.rows[0].utcoins_recompensa;
+
+        //transaccion segura: Guardar estado final y pagar
+        await pool.query('BEGIN');
+
+        await pool.query(
+            `UPDATE estudiantes_actividades
+            SET qr_escaneado = TRUE, completado_en = NOW()
+            WHERE estudiante_id = $1 AND actividad = $2`,
+            [estudianteId, actividadId]
+        );
+
+        await pool.query(
+            `UPDATE estudiantes
+            SET puntuacion = puntuacion + $1
+            WHERE id = $2`,
+            [puntos, estudianteId]
+        );
+
+        await pool.query('COMMIT');
+
+        res.status(200).json({mensaje: 'QR escaneado con exito'});
+    }
+    catch(error){
+        await pool.query('ROLLBACK');
+        console.error('Error en escanearQRFisico: ', error.message);
+        res.status(500).json({mensaje: 'Error interno al proceder el escaneo del QR'});
+    }
+};
+
 //REGISTRO DE ACTIVIDAD Y SUMAR PUNTOS
 const completarActividad = async (req, res)=>{
     const{ actividadId, qrEscaneado } = req.body;
@@ -177,6 +350,11 @@ const eliminarActividad = async (req, res) =>{
 
 module.exports = {
     obtenerActividades,
+    inscribirActividad,
+    darDeBajaActividad,
+    obtenerMisActividades,
+    verificarCodigoTexto,
+    escanearQrFisico,
     completarActividad,
     crearActividad,
     obtenerActividadesPorCategoria,
