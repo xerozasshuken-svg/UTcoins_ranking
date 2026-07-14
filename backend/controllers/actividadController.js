@@ -61,7 +61,7 @@ const darDeBajaActividad = async (req, res) =>{
     const estudianteId = req.usuario.id;
 
     try{
-        //Verificar si ya esta competo 8no se puede dar de baja una vez completo)
+        //Verificar si ya esta completo (no se puede dar de baja una vez completo)
         const verificacion = await pool.query(
             'SELECT completado FROM estudiantes_actividades WHERE estudiante_id = $1 AND actividad_id = $2',
             [estudianteId, id]
@@ -72,14 +72,16 @@ const darDeBajaActividad = async (req, res) =>{
         }
 
         await pool.query(
-            'DELETE FROM estudiantes_actividades WHERE estudiante_id = $1 AND actividades_id = $2',
+            'DELETE FROM estudiantes_actividades WHERE estudiante_id = $1 AND actividad_id = $2',
             [estudianteId, id]
         );
 
-        res.json({mensaje: 'Te has dado de baja de la actividad correctamente'});
+        return res.json({mensaje: 'Te has dado de baja de la actividad correctamente'});
     }
     catch (error){
-        console.error(500).json({mensaje: 'Eror interno al dar de baja la actividad'});
+        console.error('Error interno al dar de baja la actividad: ', error.message);
+
+        return res.status(500).json({mensaje: 'Error interno al inentar dar de baja la actividad'});
     }
 };
 

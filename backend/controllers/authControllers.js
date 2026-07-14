@@ -10,7 +10,7 @@ const registrarEstudiante = async (req, res) => {
 
     try{
         //verificar si el correo existe
-        const existeUsuario = await pool.query('SELECT *FROM estudiantes WHERE email = $1', [email]);
+        const existeUsuario = await pool.query('SELECT * FROM estudiantes WHERE email = $1', [email]);
         if (existeUsuario.rows.length > 0) {
             return res.status(400).json({ mensaje: 'El correo electronico ya esta registrado'});
         }

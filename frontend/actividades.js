@@ -2,8 +2,19 @@ document.addEventListener('DOMContentLoaded', ()=>{
     //Obtener el token
     const token = localStorage.getItem('utcoins_token') || localStorage.getItem('token');
 
-    const rolUsuario = (localStorage.getItem('rol') || '').toLowerCase().trim();
-    console.log("El rol detectado en LocalStorage es:", rolUsuario);
+    const usuarioString = localStorage.getItem('utcoins_user');
+    let rolUsuario = '';
+
+    if (usuarioString) {
+        try {
+            const usuarioObjeto = JSON.parse(usuarioString);
+            rolUsuario = usuarioObjeto.rol || '';
+        } catch (e) {
+            console.error("Error al parsear utcoins_user", e);
+        }
+    }
+    rolUsuario = rolUsuario.toLowerCase().trim();
+    console.log("El rol detectado en localstorage es: ", `"${rolUsuario}"`);
     
 
     if (!token) {
@@ -30,30 +41,18 @@ document.addEventListener('DOMContentLoaded', ()=>{
         esAdmin = true;
 
         //Mensaje de prueba
-        console.log("Datos del usuario en sesion:", usuario);
-        console.log("El rol detectado es: ", usuario.rol);
+        console.log("El usuario es administrador");
 
-            if (btnAdminCrear) {
-                btnAdminCrear.style.display = 'inline-block';
-            }
-            if (btnMisActividades) {
-                btnMisActividades.style.display = 'none';
-            }
-            if (btnVerDisponibles) {
-                btnVerDisponibles.style.display = 'none';
-            }
+        if (btnAdminCrear) btnAdminCrear.style.display = 'inline-block';
+        if (btnMisActividades) btnMisActividades.style.display = 'none';
+        if (btnVerDisponibles) btnVerDisponibles.style.display = 'none';
     }
     else{
         esAdmin = false;
-            if (btnAdminCrear) {
-                btnAdminCrear.style.display = 'none';
-            }
-            if (btnMisActividades) {
-                btnMisActividades.style.display = 'inline-block';
-            }
-            if (btnVerDisponibles) {
-                btnVerDisponibles.style.display = 'none';
-            }
+        console.log("El usuario es estudiante");
+        if (btnAdminCrear) btnAdminCrear.style.display = 'none';
+        if (btnMisActividades) btnMisActividades.style.display = 'inline-block';
+        if (btnVerDisponibles) btnVerDisponibles.style.display = 'none';
     }
 
     //Modal crear actividad
@@ -67,19 +66,19 @@ document.addEventListener('DOMContentLoaded', ()=>{
         btnMisActividades.addEventListener('click', ()=>{
             vistaActual = 'mis_actividades';
             btnMisActividades.style.display = 'none';
-            btnVerDisponibles.style.display = 'block';
+            btnVerDisponibles.style.display = 'inline-block';
 
             if (pestanasContainer) pestanasContainer.style.display = 'none';
-            cargarActividades();
+            cargarActividades('');
         });
 
         btnVerDisponibles.addEventListener('click', ()=>{
             vistaActual = 'global';
             btnVerDisponibles.style.display = 'none';
-            btnMisActividades.style.display = 'block';
+            btnMisActividades.style.display = 'inline-block';
             if(pestanasContainer) pestanasContainer.style.display = 'flex';
 
-            //Volver a cargar la categoria que este activa
+            // Recupera la pestaña que tiene tu clase real "activo"
             const pestanaActiva = document.querySelector('.btn-categorias.activo') || pestanas[0];
             cargarActividades(pestanaActiva.getAttribute('data-categoria'));
         });
@@ -104,7 +103,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
         });
     });
     //Carga inicial por defecto
-    cargarActividades('academias');
+    cargarActividades('academicas');
 
     //Funcion principal Renderizadora
     async function cargarActividades(categoria = '') {
@@ -123,6 +122,13 @@ document.addEventListener('DOMContentLoaded', ()=>{
             const respuesta = await fetch(urlTarget, {
                 headers: {'Authorization': `Bearer ${token}`}
             });
+
+            //En caso de que el servidor responda con ERROR 403 o demas
+            if (!respuesta.ok) {
+                const datosError = await respuesta.json();
+                folderCuerpo.innerHTML = `<p class="error">Error del servidor: ${datosError.mensaje || 'Acceso denegado'}</p>`;
+                return;
+            }
             const actividades = await respuesta.json();
 
              folderCuerpo.innerHTML = ''; //Elimina el cargando...
@@ -139,38 +145,42 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
                 //Renderizado condicional botones entre rol y vista activa
                 let botonesAccion = '';
-
+                
                 if (esAdmin) {
                     //Vista Admin: Solo puede eliminar permanente
-                    botonesAccion = `<button class="btn-eliminar-actividad" data-id="${act.id}">Eliminar</button>`;
+                    botonesAccion = `<button class="btn-eliminar-actividad" data-id="${act.id}" style="background-color: #d9534f; color: white;">Eliminar</button>`;
                 }
-                else if (vistaActual === 'global') {
+                else{  
+                    if (vistaActual === 'global') {
                     //Vista Estudiante Catalogo
-                    botonesAccion = `<button class="btn-inscribir btn-qr" data-id="${act.id}">Registrarse</button>`;
+                          botonesAccion = `<button class="btn-inscribir btn-qr" data-id="${act.id}">Registrarse</button>`;
+                    }
+                    else if (vistaActual === 'mis_actividades') {
+                        //Vista Estudiante 
+                        botonesAccion = `
+                            <button class="btn-verificar btn-qr" data-id="${act.id}" ${act.cdigo_verificado ? 'disabled style="background-color:#777;"' : 'style="background-color:#28a745; color:white;"'}>
+                                ${act.codigo_verificado ? 'Verificado ✓' : 'Verificar Código'}
+                            </button>
+                            <button class="btn-escanear-cam btn-qr" data-id="${act.id}" ${act.qr_escaneado ? 'disabled style="background-color:#777;"' : 'style="background-color:#007bff; color:white;"'}>
+                                ${act.qr_escaneado ? 'Cobrado' : 'Escanear QR'}
+                            </button>
+                            <button class="btn-baja btn-qr" data-id="${act.id}" style="background-color:#d9534f; color:white;">Dar de baja</button>
+                        `;
+                    }
                 }
-                else if (vistaActual === 'mis_actividades') {
-                    //Vista Estudiante 
-                    botonesAccion = `
-                        <button class="btn-verificar" data-id="${act.id}" ${act.codigo_verificado ? 'disabled style="background-color:#777;"' : ''}>
-                            ${act.codigo_verificado ? 'Verificado ✓' : 'Verificar Código'}
-                        </button>
-                        <button class="btn-escanear-cam" data-id="${act.id}" ${act.qr_escaneado ? 'disabled style="background-color:#777;"' : ''}>
-                            ${act.qr_escaneado ? 'Cobrado $$' : 'Escanear QR'}
-                        </button>
-                        <button class="btn-baja" data-id="${act.id}" style="background-color:#d9534f;">Dar de baja</button>
-                    `;
-                }
-
+                
+                //Inyeccion exacta en la estructura de tarjeta eal
+                tarjeta.className = 'tarjeta-actividad';
                 tarjeta.innerHTML = `
-                <div class="actividad-info">
-                    <h3>${act.titulo}</h3>
-                    <p>${act.descripcion}</p>
-                    <span class="recompensa">${act.puntos || act.utcoins_recompensa || 0} UTCOINS</span>
-                </div>
-                <div class="actividad-acciones">
+                    <div class="actividad-info">
+                        <h3>${act.titulo}</h3>
+                        <p>${act.descripcion}</p>
+                        <span class="recompensa">${act.puntos} UTCOINS</span>
+                    </div>
+                    <div class="actividad-acciones">
                         ${botonesAccion}
                     </div>
-                `;
+                `;  
 
                 //Asignacion de eventos Dinamicos a cada Tarjeta
                 asignarEventosTarjeta(tarjeta, act);
@@ -192,14 +202,26 @@ document.addEventListener('DOMContentLoaded', ()=>{
             btnEliminar.addEventListener('click', async ()=>{
                 if(!confirm(`¿Eliminar permanente "${act.titulo}"?`)) return;
                 try{
-                    const res = await fetch(`${API_URL}/eliminar/${act.id}`,{
+                    const respuesta = await fetch(`${API_URL}/eliminar/${act.id}`,{
                         method: 'DELETE',
                         headers: {'Authorization': `Bearer ${token}`}
                     });
-                    if(res.ok) {tarjeta.remove();}
+                    
+                    const datos = await respuesta.json();
+
+                    if (respuesta.ok) {
+                        alert(datos.mensaje || 'Actividad eliminada con exito');
+                        //Recargar la categoria actual para que la tarjeta desaparezca
+                        const pestanaActiva = document.querySelector('.btn-categoria.activo');
+                        cargarActividades(pestanaActiva ? pestanaActiva.getAttribute('data-categoria'): 'academicas');
+                    }
+                    else{
+                        alert(`Error: ${datos.mensaje || 'No se puede eliminar la actividad'}`);
+                    }
                 }
-                catch (e){
-                    console.error(e);
+                catch (error){
+                    console.error('Error al conectar con el servidor al eliminar: ',error);
+                    alert('Error al conectar con el servior');
                 }
             });
         }
@@ -226,19 +248,52 @@ document.addEventListener('DOMContentLoaded', ()=>{
         //Evento dar de baja (estudiante)
         const btnBaja = tarjeta.querySelector('.btn-baja');
         if (btnBaja) {
-            btnBaja.addEventListener('click', async()=>{
-                if (!confirm(`¿Seguro que deseas darte de baja de "${act.titulo}"?`)) return;
-                try{
-                    const res = await fetch(`${API_URL}/baja/${act.id}`,{
-                        method: 'DELETE',
-                        headers: {'Authorizaton': `Bearer ${token}`}
-                    });
-                    const data = await res.json();
-                    alert(data.mensaje);
-                    if(res.ok) tarjeta.remove();
+            btnBaja.addEventListener('click', async () => {
+                if (!confirm(`¿Seguro que deseas darte de baja de "${act.titulo}"?`)) {
+                    return;
                 }
-                catch (e){
-                    console.error(e);
+                
+                const tokenActivo = localStorage.getItem('utcoins_token') || localStorage.getItem('token');
+
+                if (!tokenActivo) {
+                    alert('Tu sesión ha expirado. Por favor, vuelve a iniciar sesión.');
+                    window.location.href = 'inicio_sesion.html';
+                    return;
+                }
+                
+                try{
+                    const respuesta = await fetch(`http://localhost:3000/api/actividades/baja/${act.id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            // Aseguramos el formato exacto "Bearer " que te pide tu authmiddleware
+                            'Authorization': `Bearer ${tokenActivo}`
+                        }
+                    });
+
+                    const datos = await respuesta.json();
+                    
+                    if (respuesta.ok) {
+                        alert(datos.mensaje || 'Te has dado de baja correctamente');
+
+                        //Volvemos a llamar a cargarActividades sin pasar categoría 
+                        // para que el folder se vuelva a pintar desde el servidor y la tarjeta ya no aparezca
+                        if (vistaActual === 'mis_actividades') {
+                            cargarActividades('');    
+                        }
+                        else{
+                            const pestanaActiva = document.querySelector('.btn-categoria.activo');
+                            const cat = pestanaActiva ? pestanaActiva.getAttribute('data-categoria') : 'academicas';
+                            cargarActividades(cat);
+                        }
+                    }
+                    else{
+                        alert(`Error: ${datos.mensaje || 'No se pudo dar de baja'}`);
+                    }
+                }
+                catch (error){
+                    console.error('Error al conectar con el servidor para dar de baja: ', error);
+                    alert('Error al conectar con el servidor');
                 }
             });
         }

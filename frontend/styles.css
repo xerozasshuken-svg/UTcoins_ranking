@@ -347,12 +347,50 @@ body {
     margin-bottom: 20px;
     font-weight: 700;
 }
+/*contexto para el alineado superior*/
 .titulo-admin-flex{
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 15px;
     margin-bottom: 20px;
+    width: 100%;
 }
+/*Contenedor de los botones superiores*/
+.controles-superiores{
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+/*diseño de botones estudiantes */
+.btn-visita-estudiante {
+    background-color: #007bff; 
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 3px 6px rgba(0, 123, 255, 0.15);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+.btn-visita-estudiante:hover {
+    background-color: #0056b3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.25);
+}
+
+#btn-ver-disponibles {
+    background-color: #6c757d !important;
+    box-shadow: 0 3px 6px rgba(108, 117, 125, 0.15) !important;
+}
+#btn-ver-disponibles:hover {
+    background-color: #5a6268 !important;
+    box-shadow: 0 4px 8px rgba(108, 117, 125, 0.25) !important;
+}
+
 .titulo-admin-flex .titulo-seccion{
     margin-bottom: 0;
 }
