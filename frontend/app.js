@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api/auth';
+const API_URL = 'http://10.55.89.124:3000/api/auth';
 
 
 //Logica de registro de estudiantes

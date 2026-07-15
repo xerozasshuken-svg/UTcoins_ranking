@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     }
 
     //URL BASE del backend
-    const API_URL = 'http://localhost:3000/api/actividades';
+    const API_URL = 'http://10.55.89.124:3000/api/actividades';
 
     
     let esAdmin = false;
@@ -344,30 +344,42 @@ document.addEventListener('DOMContentLoaded', ()=>{
         //Evento escanear QR (estudiante)
         const btnEscanearQr = tarjeta.querySelector('.btn-escanear-cam');
         if (btnEscanearQr) {
-            btnEscanearQr.addEventListener('click', ()=>{
+            btnEscanearQr.addEventListener('click', async ()=>{
 
                 //Mostrar el modal en pantalla
                 modalQR.classList.add('mostrar');
 
                 //Inicializar el escaner en 'lector-qr-camara'
-                html5QrScanner = new html5QrScanner(
-                    "lector-qr-camara",
-                    {fps: 10, qrbox:  {width: 250, height: 250} },
-                    /*Verbose*/false
-                );
+                html5QrScanner = new Html5Qrcode("lector-qr-camara");
 
-                async function onScanSuccess(decodedText, decodeResult) {
-                    console.log(`Codigo detectado: ${decodedText}`);
+                const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
-                    //Apagamos la camara
-                    await html5QrScanner.clear();
+                try {
+                    
+                    //encender directamente la camara trasera ('enviroment')
+                    await html5QrScanner.start(
+                        { facingMode: "environment" },
+                        config,
+                        async (decodedText) =>{
+                            //callback cuando se lee el qr con exito
+                            console.log(`Codigo detectado: ${decodedText}`);
+
+                            //Detener la camara y cerrar el modal
+                            await html5QrScanner.stop();
+                            modalQR.classList.remove('mostrar');
+
+                            await enviarLecturaQR(act.id, decodedText);
+                        },
+                        (errorMessage) =>{
+
+                        }
+                    );
+                } 
+                catch (error) {
+                    console.error("Error al iniciar la camara: ", error);
+                    alert("No se pudo acceder a la camara. Asegurate de otorgar los permisos en el navegador");
                     modalQR.classList.remove('mostrar');
-
-                    //Envo del codigo al backend con la funcion
-                    await enviarLecturaQR(act.id, decodedText)
                 }
-
-                html5QrScanner.render(onScanSuccess, onScanFailure);
             });
         }
     }
