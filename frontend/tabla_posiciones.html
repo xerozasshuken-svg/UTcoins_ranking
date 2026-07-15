@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabla de Posiciones - UTcoins</title>
+    <link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+
+    <header class="top-banner" style="justify-content: space-between; color: white;">
+        <div class="nav-enlaces" style="display: flex; gap: 20px;">
+            <a href="index.html" style="color: white; text-decoration: none; font-weight: 600;">Inicio</a>
+            <a href="actividades.html" style="color: white; text-decoration: none; font-weight: 600;">Actividades</a>
+            <a href="tabla_posiciones.html" style="color: white; text-decoration: none; font-weight: 600; border-bottom: 2px solid white;">Tabla Posiciones</a>
+        </div>
+        
+        <div id="perfil-preview" style="display: flex; align-items: center; gap: 15px;">
+            <span id="nav-nombre-usuario" style="font-weight: 600;">Cargando...</span>
+            <span id="nav-puntos-usuario" class="recompensa" style="background: white; color: #3EC768; padding: 5px 10px; border-radius: 20px; font-weight: bold; font-size: 14px;">0 UTcoins</span>
+        </div>
+    </header>
+    
+    <main class="contenedor-principal">
+        <div class="titulo-admin-flex">
+            <h1 class="titulo-seccion">Tabla de Clasificación</h1>
+        </div>
+
+        <div class="ranking-container">
+            <div class="rango-card">
+                <h3>Tu Posición</h3>
+                <div id="mi-rango-actual" class="posicion">--</div>
+            </div>
+        </div>
+        
+        <section class="folder-contenedor">
+            <div class="folder-pestanas">
+                <button class="btn-categoria activo" data-filtro="campus">Todo el campus</button>
+                <button class="btn-categoria" data-filtro="carrera">Mi carrera</button>
+            </div>
+            
+            <div class="folder-cuerpo" style="padding: 0;">
+                <table class="tabla-clasificacion">
+                    <thead>
+                        <tr>
+                            <th style="width: 10%;">Rango</th>
+                            <th style="width: 40%;">Estudiante</th>
+                            <th style="width: 30%;">Carrera</th>
+                            <th style="width: 20%;">Puntuación</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-cuerpo-ranking">
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: #888;">Cargando posiciones...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script src="ranking.js"></script>
+</body>
+</html>
