@@ -9,7 +9,8 @@ const {
     escanearQrFisico,
     completarActividad,
     crearActividad,
-    eliminarActividad 
+    obtenerActividadesPorCategoria,
+    eliminarActividad
 } = require('../controllers/actividadController');
 
 const verificarToken = require('../middlewares/authMiddleware');

@@ -57,6 +57,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
     //Modal crear actividad
     const modal = document.getElementById('modal-actividad');
+
     if (btnAdminCrear && modal) {
             btnAdminCrear.addEventListener('click', () => modal.classList.add('mostrar')); // <-- Ahora con punto (.)
             document.getElementById('btn-cerrar-modal').addEventListener('click', ()=> modal.classList.remove('mostrar'));
@@ -308,15 +309,21 @@ document.addEventListener('DOMContentLoaded', ()=>{
                 try{
                     const res = await fetch(`${API_URL}/verificar-codigo`,{
                         method: 'POST',
-                        headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
-                        body: JSON.stringify({actividadId: act.id, codigoTexto: codigo.trim()})
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            actividadId: act.id, codigoTexto: codigo.trim()
+                        })
                     });
                     const data = await res.json();
                     alert(data.mensaje);
-                    if(res.ok) cargarActividades(); //Refrescar para deshabilitar boton
+                    if(res.ok) {cargarActividades('')}; //Refrescar para deshabilitar boton
                 }
                 catch (e){
-                    console.error(e);
+                    console.error("Error al verificar codigo manual: ", e);
+                    alert("Error al conectar con el servidor");
                 }
             });
         }
@@ -339,15 +346,21 @@ document.addEventListener('DOMContentLoaded', ()=>{
         try{
             const res = await fetch(`${API_URL}/escanear-qr`,{
                 method: 'POST',
-                headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
-                body: JSON.stringify({actividadId, contenidoQR})
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    actividadId, contenidoQR
+                })
             });
             const data = await res.json();
             alert(data.mensaje);
-            if(res.ok) cargarActividades();
+            if(res.ok) {cargarActividades('')};
         }
         catch (e){
-            console.error(e);
+            console.error("Error al enviar la lectura del QR:", e);
+            alert("Error al conectar con el servidor");
         }
     }
     

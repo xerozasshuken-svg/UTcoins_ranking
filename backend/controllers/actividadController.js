@@ -2,20 +2,24 @@ const pool = require('../db');
 
 const obtenerActividades =  async(req,res) =>{
     const { categoria } = req.query; //Captura lo que viene en categoria
+    const  estudianteId = req.usuario.id; //Id del alumno en sesion
 
     if (!categoria) {
         return res.status(400).json({mensaje: 'La categoria es requerida'});
     }
 
     try{
-        //Filtrar por categoria y comprobar que no haya expirado
+        //Filtrar por categoria y comprobar que no haya expirado o ya este registrado
         const resultado = await pool.query(
-            `SELECT id, titulo, descripcion, utcoins_recompensa AS puntos, categoria, fecha_expiracion
-            FROM actividades
-            WHERE categoria = $1
-            AND (fecha_expiracion IS NULL OR fecha_expiracion > NOW())
-            ORDER BY id DESC`,
-            [categoria]
+            `SELECT a.id, a.titulo, a.descripcion, a.utcoins_recompensa AS puntos, a.categoria, a.fecha_expiracion
+            FROM actividades a
+            LEFT JOIN estudiantes_actividades ea
+                ON a.id = ea.actividad_id AND ea.estudiante_id = $2
+            WHERE a.categoria = $1
+            AND ea.id IS NULL -- CLAVE: Si es NULL significa que el alumno NO esta inscrito
+            AND (a.fecha_expiracion IS NULL OR a.fecha_expiracion > NOW())
+            ORDER BY a.id DESC`,
+            [categoria, estudianteId]
         );
 
         res.json(resultado.rows);
@@ -91,10 +95,12 @@ const obtenerMisActividades = async (req,res) =>{
     try{
         //Unimos estudiantes_actividades con actividades
         const resultado = await pool.query(
-            `SELECT a.id, a.titulo, a.descripcion, a.utcoins_recompensa AS puntos, a.categoria, ea.completado
+            `SELECT a.id, a.titulo, a.descripcion, a.utcoins_recompensa AS puntos,
+                    ea.codigo_verificado, ea.qr_escaneado, ea.completado
             FROM estudiantes_actividades ea
             JOIN actividades a ON ea.actividad_id = a.id
             WHERE ea.estudiante_id = $1
+            AND ea.completado = FALSE -- CLAVE: Desaparece de "Mis actividades"
             ORDER BY ea.id DESC`,
             [estudianteId]
         );
@@ -113,8 +119,8 @@ const verificarCodigoTexto = async (req,res) =>{
 
     try{
         //Verificar inscripcion
-        const inscripcion = await Pool.query(
-            'SELECT codigo_verificado, qr_escaneado FROM estudiantes_actividades WHERE estudiante_id = $1 AND actividade_id = $2',
+        const inscripcion = await pool.query(
+            'SELECT codigo_verificado, qr_escaneado FROM estudiantes_actividades WHERE estudiante_id = $1 AND actividad_id = $2',
             [estudianteId, actividadId]
         );
         
@@ -123,10 +129,10 @@ const verificarCodigoTexto = async (req,res) =>{
         }
 
         //Validar contra el codigo Qr culto de la tabla de actividades
-        const actividad = await pool.query('SELECT codigo_qr FROM actividades WHERE id = $1', [actividadId]);
+        const actividad = await pool.query('SELECT codigo_verificacion FROM actividades WHERE id = $1', [actividadId]);
 
-        if (actividad.rows[0].codigo_qr.toUpperCase() !== codigoTexto.toUpperCase()) {
-            return res.status(400).json({mensaje: 'El codigo de validacion de texto es incorrecto'});
+        if (actividad.rows[0].codigo_verificacion.toUpperCase() !== codigoTexto.toUpperCase()) {
+            return res.status(400).json({ mensaje: 'El código de validación de texto es incorrecto.' });
         }
 
         //Marcar primer paso como completado
@@ -146,7 +152,7 @@ const verificarCodigoTexto = async (req,res) =>{
 };
 
 const escanearQrFisico = async (req,res) =>{
-    const {actividadId, contenidoQr } = req.body;
+    const {actividadId, contenidoQR } = req.body;
     const estudianteId = req.usuario.id;
 
     try{
@@ -157,18 +163,25 @@ const escanearQrFisico = async (req,res) =>{
         );
 
         if (inscripcion.rows.length === 0 || !inscripcion.rows[0].codigo_verificado) {
-            return res.status(400).json({mensaje: 'Primero debess verificar el codigo de texto de la actividad antes de escanear el QR'});
+            return res.status(400).json({ mensaje: 'Primero debes verificar el código de texto de la actividad antes de escanear el QR.' });
         }
 
         if (inscripcion.rows[0].qr_escaneado) {
-            return res.status(400).json({mensaje: 'Ya has reclamado los puntos de esta actividad'});
+            return res.status(400).json({ mensaje: 'Ya has reclamado los puntos de esta actividad.' });
         }
 
         //Verificar que el QR escaneado sea el correcto
-        const actividad = await pool-query('SELECT utcoins_recompensa, codigo_qr FROM actividades WHERE id = $1', {actividadId});
+        const actividad = await pool.query(
+            'SELECT utcoins_recompensa, codigo_verificacion FROM actividades WHERE id = $1', 
+            [actividadId]
+        );
         
-        if (actividad.rows[0].codigo_qr.toUpperCase() !== contenidoQr.toUpperCase()) {
-            return res.status(400).json({mensaje: 'El codigo QR escaneado no pertenece a esta actividad'});
+        if (actividad.rows.length === 0) {
+            return res.status(404).json({ mensaje: 'La actividad no existe.' });
+        }
+
+        if (actividad.rows[0].codigo_verificacion.toUpperCase() !== contenidoQR.toUpperCase()) {
+            return res.status(400).json({ mensaje: 'El código QR escaneado no pertenece a esta actividad.' });
         }
 
         const puntos = actividad.rows[0].utcoins_recompensa;
@@ -178,21 +191,21 @@ const escanearQrFisico = async (req,res) =>{
 
         await pool.query(
             `UPDATE estudiantes_actividades
-            SET qr_escaneado = TRUE, completado_en = NOW()
-            WHERE estudiante_id = $1 AND actividad = $2`,
+            SET qr_escaneado = TRUE, completado = TRUE
+            WHERE estudiante_id = $1 AND actividad_id = $2`,
             [estudianteId, actividadId]
         );
 
         await pool.query(
             `UPDATE estudiantes
-            SET puntuacion = puntuacion + $1
+            SET puntuacion = COALESCE(puntuacion, 0) + $1
             WHERE id = $2`,
             [puntos, estudianteId]
         );
 
         await pool.query('COMMIT');
 
-        res.status(200).json({mensaje: 'QR escaneado con exito'});
+        res.status(200).json({mensaje: `QR escaneado con exito, Has ganado +${puntos} UTcoins`});
     }
     catch(error){
         await pool.query('ROLLBACK');
@@ -262,27 +275,34 @@ const completarActividad = async (req, res)=>{
     }
 };
 
+const generarCodigoUnico = () =>{
+    const carracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let resultado = 'UTC-';
+
+    for(let i = 0; i<5; i++){
+        resultado += carracteres.charAt(Math.floor(Math.random() * carracteres.length));
+    }
+
+    return resultado;
+};
+
 const crearActividad = async (req, res) =>{
 
     const {titulo, descripcion, puntos, categoria, fecha_expiracion} = req.body;
 
-    try{
-        
-        //Codigo aleatorio para QR
-        const codigo_qr = `RETO-${Math.floor(100000 + Math.random() * 900000)}`;
-    
-        //Insertar en la base de datos usando campos reales
-        const quertText = `
-            INSERT INTO actividades (titulo, descripcion, utcoins_recompensa, categoria, codigo_qr, fecha_expiracion)
-            VALUES ($1, $2, $3, $4, $5, $6)
-            RETURNING *`;
+    const codigoVerificacion = generarCodigoUnico();
 
-        const valores = [titulo, descripcion, puntos, categoria, codigo_qr, fecha_expiracion];
-        const resultado = await pool.query(quertText, valores);
+    try{
+        //Insertar en la base de datos usando campos reales
+        const nuevaActividad = await pool.query(
+            `INSERT INTO actividades (titulo, descripcion, utcoins_recompensa, categoria, fecha_expiracion, codigo_verificacion)
+            VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+            [titulo, descripcion, puntos, categoria, fecha_expiracion, codigoVerificacion]
+        );
 
         res.status(201).json({
             mensaje: 'Actividad creada con exito por el admin',
-            actividad: resultado.rows[0]
+            actividad: nuevaActividad.rows[0]
         });
     }
     catch (error){
