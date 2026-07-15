@@ -437,6 +437,36 @@ body {
 .btn-eliminar-actividad:hover{
     background-color: #c82333;
 }
+/*Contenedor del lector QR*/
+#lector-qr-camara{
+    width: 100%;
+    max-width: 400px;
+    margin: 20px;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #f8f9fa;
+    border: 2px dashed #ccc;
+}
+/*Modificaciones esteticas para el modal del QR*/
+.qr-modal{
+    max-width: 450px !important;
+    text-align: center;
+}
+
+/*Ajustes automaticos para botones internos que genera la libreria*/
+#lector-qr-camara button{
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 10px auto;
+    font-weight: bold;
+}
+#lector-qr-camara button:hover{
+    background-color: #0056b3;
+}
 
 /*Estilos de la tarjeta flotante*/
 .modal-overlay {

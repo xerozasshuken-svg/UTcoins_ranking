@@ -36,6 +36,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const pestanasContainer = document.querySelector('.folder-pestanas'); // Asegúrate de tener este contenedor o ajusta según tu HTML
     const pestanas = document.querySelectorAll('.btn-categoria');
 
+    const modalQR = document.getElementById('modal-qr');
+    const btnCerrarQR = document.getElementById('btn-cerrar-modal-qr');
+    let html5QrScanner = null; //instancia de la camara
+
     //Activacion de bootones segun el rol
     if (rolUsuario === 'admin') {
         esAdmin = true;
@@ -82,6 +86,16 @@ document.addEventListener('DOMContentLoaded', ()=>{
             // Recupera la pestaña que tiene tu clase real "activo"
             const pestanaActiva = document.querySelector('.btn-categorias.activo') || pestanas[0];
             cargarActividades(pestanaActiva.getAttribute('data-categoria'));
+        });
+    }
+
+    if (btnCerrarQR) {
+        btnCerrarQR.addEventListener('click', ()=>{
+            modalQR.classList.remove('mostrar');
+
+            if (html5QrScanner) {
+                html5QrScanner.clear().catch(err => console.error("Error al apagar camara: ",err));
+            }
         });
     }
 
@@ -331,12 +345,29 @@ document.addEventListener('DOMContentLoaded', ()=>{
         const btnEscanearQr = tarjeta.querySelector('.btn-escanear-cam');
         if (btnEscanearQr) {
             btnEscanearQr.addEventListener('click', ()=>{
-                alert("Abtiendo camara... (aqui se integrara la libreria de la camara)");
-                //Prueba de logica
-                const qrSimulando = prompt("[PRUEBA CONTROLLER] Acerca el QR a la camara (escribe el codigo del qr aqui): ");
-                if(!qrSimulando) return;
 
-                enviarLecturaQR(act.id, qrSimulando.trim());
+                //Mostrar el modal en pantalla
+                modalQR.classList.add('mostrar');
+
+                //Inicializar el escaner en 'lector-qr-camara'
+                html5QrScanner = new html5QrScanner(
+                    "lector-qr-camara",
+                    {fps: 10, qrbox:  {width: 250, height: 250} },
+                    /*Verbose*/false
+                );
+
+                async function onScanSuccess(decodedText, decodeResult) {
+                    console.log(`Codigo detectado: ${decodedText}`);
+
+                    //Apagamos la camara
+                    await html5QrScanner.clear();
+                    modalQR.classList.remove('mostrar');
+
+                    //Envo del codigo al backend con la funcion
+                    await enviarLecturaQR(act.id, decodedText)
+                }
+
+                html5QrScanner.render(onScanSuccess, onScanFailure);
             });
         }
     }
