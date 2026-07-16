@@ -1,17 +1,34 @@
 const pool = require('../db');
 
 const obtenerRanking = async (req,res) =>{
+    const { carrera } = req.query;
     try{
         //Consulta de estudiantes de mayor a menor
         //Limite de 30
-        const queryText = `
-        SELECT id, nombre, carrera, puntuacion
-        FROM estudiantes
-        ORDER BY puntuacion DESC
-        LIMIT 30`;
+        let queryText = '';
+        let queryParams = [];
 
-        const resultado = await pool.query(queryText);
-        //Lista de los mejores
+        if (carrera) {
+            queryText = `
+                SELECT id, nombre, carrera, puntuacion
+                FROM estudiantes
+                WHERE LOWER(carrera) = LOWER($1)
+                ORDER BY puntuacion DESC
+                LIMIT 30`;  
+            queryParams = [carrera];
+        }
+        else{
+            //Consulta geneneral
+            queryText = `
+            SELECT id, nombre, carrera, puntuacion
+            FROM estudiantes
+            ORDER BY puntuacion DESC
+            LIMIT 30`;
+        }
+        
+
+        const resultado = await pool.query(queryText, queryParams);
+        
         res.status(200).json({
             mensaje: 'Ranking obtenido con exito',
             ranking: resultado.rows
