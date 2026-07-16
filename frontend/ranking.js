@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () =>{
     }
 
     const usuarioLogueado = JSON.parse(usuarioString);
-    const API_URL = 'http://10.55.89.124:3000/api/ranking';
+    const API_URL = 'http://Tu ip:3000/api/ranking';
 
     const navNombre = document.getElementById('nav-nombre-usuario');
     const navPuntos = document.getElementById('nav-puntos-usuario');
